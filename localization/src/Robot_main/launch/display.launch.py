@@ -18,7 +18,7 @@ def generate_launch_description():
 
     #-----------------------path declare------------------------------
     # main pkg
-    pkg_share = launch_ros.substitutions.FindPackageShare(package='Robot_main').find('Robot_main')
+    pkg_share = launch_ros.substitutions.FindPackageShare(package='robot_main').find('robot_main')
     
     # robot description file path and rviz path 
     default_model_path = os.path.join(pkg_share, 'src/description/robot_description.urdf')
@@ -27,11 +27,11 @@ def generate_launch_description():
     # laser driver path
     driver_dir = os.path.join(get_package_share_directory('lslidar_driver'), 'params', 'lidar_uart_ros2','lsm10_p.yaml')
     # map file path
-    map_file = os.path.join(get_package_share_directory('Robot_main'), 'map', 'EBEEL3.yaml')
+    map_file = os.path.join(get_package_share_directory('robot_main'), 'map', 'EBEEL3.yaml')
     #world_path=os.path.join(pkg_share, 'world/my_world.sdf')
     
     # navigation2 file path
-    nav2_yaml = os.path.join(get_package_share_directory('Robot_main'), 'config', 'amcl_config.yaml')
+    nav2_yaml = os.path.join(get_package_share_directory('robot_main'), 'config', 'amcl_config.yaml')
     #-----------------------------------------------------------------
 
 
