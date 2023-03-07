@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>sam_bot_description</name>
+  <name>Robot_main</name>
   <version>1.0.0</version>
   <description>URDF Setup Demo</description>
   <maintainer email="jd.deleon@samsung.com">Josen Daniel De Leon</maintainer>

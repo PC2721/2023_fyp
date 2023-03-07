@@ -13,14 +13,30 @@ import os
 from glob import glob
 
 def generate_launch_description():
-    pkg_share = launch_ros.substitutions.FindPackageShare(package='sam_bot_description').find('sam_bot_description')
-    default_model_path = os.path.join(pkg_share, 'src/description/sam_bot_description1.urdf')
+
+
+
+    #-----------------------path declare------------------------------
+    # main pkg
+    pkg_share = launch_ros.substitutions.FindPackageShare(package='Robot_main').find('Robot_main')
+    
+    # robot description file path and rviz path 
+    default_model_path = os.path.join(pkg_share, 'src/description/robot_description.urdf')
     default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
+
+    # laser driver path
     driver_dir = os.path.join(get_package_share_directory('lslidar_driver'), 'params', 'lidar_uart_ros2','lsm10_p.yaml')
-    map_file = os.path.join(get_package_share_directory('sam_bot_description'), 'map', 'nusri2.yaml')
+    # map file path
+    map_file = os.path.join(get_package_share_directory('Robot_main'), 'map', 'EBEEL3.yaml')
     #world_path=os.path.join(pkg_share, 'world/my_world.sdf')
-    nav2_yaml = os.path.join(get_package_share_directory('sam_bot_description'), 'config', 'amcl_config.yaml')
-   
+    
+    # navigation2 file path
+    nav2_yaml = os.path.join(get_package_share_directory('Robot_main'), 'config', 'amcl_config.yaml')
+    #-----------------------------------------------------------------
+
+
+
+    #------------------------Node declare------------------------------
     robot_state_publisher_node = launch_ros.actions.Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -32,14 +48,8 @@ def generate_launch_description():
         name='joint_state_publisher',
         #condition=launch.conditions.UnlessCondition(LaunchConfiguration('gui'))
     )
-    rviz_node = launch_ros.actions.Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        #arguments=['-d', LaunchConfiguration('rvizconfig')],
-    )
-    lsliadar_node = LifecycleNode(
+
+    lsliadar_init = LifecycleNode(
         package='lslidar_driver',
         executable='lslidar_driver_node',
         name='lslidar_driver_node',		
@@ -47,6 +57,11 @@ def generate_launch_description():
         emulate_tty=True,
         namespace='',
         parameters=[driver_dir],
+    )
+    imu_init = launch_ros.actions.Node(
+        package='imu',
+        executable='imu_node',
+        name='imu_node',
     )
     mapserver_node = launch_ros.actions.Node(
         package='nav2_map_server',
@@ -80,13 +95,7 @@ def generate_launch_description():
         output='screen'
     )
     '''
-    robot_localization_node = launch_ros.actions.Node(
-         package='robot_localization',
-         executable='ekf_node',
-         name='ekf_filter_node',
-         output='screen',
-         parameters=[os.path.join(pkg_share, 'config/ekf.yaml'), {'use_sim_time': False}]
-    )
+
     odom_node = launch_ros.actions.Node(
         package='difftf_py',
         executable='diff_tf',
@@ -97,26 +106,47 @@ def generate_launch_description():
         executable='odom_publisher',
         name='odom_publisher',
     )
-    
-    
+    robot_localization_node = launch_ros.actions.Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[os.path.join(pkg_share, 'config/ekf.yaml'), {'use_sim_time': False}]
+    )
+
+    rviz_node = launch_ros.actions.Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        output='screen',
+        #arguments=['-d', LaunchConfiguration('rvizconfig')],
+    )
+
 
     return launch.LaunchDescription([
+    # Some parameter you can add when you launch
         launch.actions.DeclareLaunchArgument(name='model', default_value=default_model_path,
                                             description='Absolute path to robot urdf file'),
         launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path,
                                             description='Absolute path to rviz config file'),
-        launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='False',
-                                            description='Flag to enable use_sim_time'),
-        #launch.actions.ExecuteProcess(cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world_path], output='screen'),
+        
+    #robot description
         joint_state_publisher_node,
         robot_state_publisher_node,
-        robot_localization_node,
+
         #spawn_entity,
-        #rviz_node,
-        lsliadar_node,
-        #mapserver_node,
-        #amcl_node,
-        #lifecycle_node,
+    #localization and navigation
+        mapserver_node,
+        amcl_node,
+        lifecycle_node,
+    #odom driver and transmit
         odom_node,
         odom_trans,
+    #data fusion(imu and laser) driver
+        robot_localization_node,
+    #imu and laser driver
+        imu_init,
+        lsliadar_init,
+    #visualization
+        rviz_node,
     ])

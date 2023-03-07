@@ -13,13 +13,13 @@ import os
 from glob import glob
 
 def generate_launch_description():
-    pkg_share = launch_ros.substitutions.FindPackageShare(package='sam_bot_description').find('sam_bot_description')
-    default_model_path = os.path.join(pkg_share, 'src/description/sam_bot_description1.urdf')
+    pkg_share = launch_ros.substitutions.FindPackageShare(package='Map_main').find('Map_main')
+    default_model_path = os.path.join(pkg_share, 'src/description/robot_description.urdf')
     default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
     driver_dir = os.path.join(get_package_share_directory('lslidar_driver'), 'params', 'lidar_uart_ros2','lsm10_p.yaml')
-    map_file = os.path.join(get_package_share_directory('sam_bot_description'), 'map', 'EBEEL3.yaml')
+    map_file = os.path.join(get_package_share_directory('Map_main'), 'map', 'nusri2.yaml')
     #world_path=os.path.join(pkg_share, 'world/my_world.sdf')
-    nav2_yaml = os.path.join(get_package_share_directory('sam_bot_description'), 'config', 'amcl_config.yaml')
+    nav2_yaml = os.path.join(get_package_share_directory('Map_main'), 'config', 'amcl_config.yaml')
    
     robot_state_publisher_node = launch_ros.actions.Node(
         package='robot_state_publisher',
@@ -97,11 +97,6 @@ def generate_launch_description():
         executable='odom_publisher',
         name='odom_publisher',
     )
-    imu_init = launch_ros.actions.Node(
-        package='imu',
-        executable='imu_node',
-        name='imu_node',
-    )
     
     
 
@@ -117,12 +112,11 @@ def generate_launch_description():
         robot_state_publisher_node,
         robot_localization_node,
         #spawn_entity,
-        rviz_node,
+        #rviz_node,
         lsliadar_node,
-        mapserver_node,
-        amcl_node,
-        lifecycle_node,
+        #mapserver_node,
+        #amcl_node,
+        #lifecycle_node,
         odom_node,
         odom_trans,
-        imu_init,
     ])
