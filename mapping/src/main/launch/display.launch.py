@@ -15,10 +15,14 @@ from glob import glob
 def generate_launch_description():
 
     #-----------------------path declare------------------------------
+        ## ***** File paths ******
+    pkg_share_cartor = launch_ros.substitutions.FindPackageShare('cartographer_ros').find('cartographer_ros')
     pkg_share = launch_ros.substitutions.FindPackageShare(package='main').find('main')
+    
     default_model_path = os.path.join(pkg_share, 'src/description/robot_description.urdf')
     default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
     driver_dir = os.path.join(get_package_share_directory('lslidar_driver'), 'params', 'lidar_uart_ros2','lsm10_p.yaml')
+    
     map_file = os.path.join(get_package_share_directory('main'), 'map', 'nusri2.yaml')
     #world_path=os.path.join(pkg_share, 'world/my_world.sdf')
     nav2_yaml = os.path.join(get_package_share_directory('main'), 'config', 'amcl_config.yaml')
@@ -44,7 +48,7 @@ def generate_launch_description():
         name='rviz2',
         output='screen',
     )
-
+    # laser and imu driver 
     imu_init = launch_ros.actions.Node(
         package='imu',
         executable='imu_node',
@@ -59,6 +63,24 @@ def generate_launch_description():
         namespace='',
         parameters=[driver_dir],
     )
+    # cartographer init
+    cartographer_node = Node(
+        package = 'cartographer_ros',
+        executable = 'cartographer_node',
+        arguments = [
+            '-configuration_directory', 'src/cartographer/configuration_files',
+            '-configuration_basename', 'my_robot.lua'],
+        output = 'screen'
+        )
+
+    cartographer_occupancy_grid_node = Node(
+        package = 'cartographer_ros',
+        executable = 'cartographer_occupancy_grid_node',
+        parameters = [
+            {'use_sim_time': False},
+            {'resolution': 0.05}],
+        )
+    # map saver
     mapserver_node = launch_ros.actions.Node(
         package='nav2_map_server',
         executable='map_server',
@@ -120,23 +142,25 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path,
                                             description='Absolute path to rviz config file'),
 
-        robot_localization_node,
     #robot description
         joint_state_publisher_node,
         robot_state_publisher_node,
     #odom driver and transmit
         odom_node,
         odom_trans,
-
+    
     #data fusion(imu and laser) driver
         robot_localization_node,
     #imu and laser driver
         imu_init,
         lsliadar_init,
         #spawn_entity,
+    # cartographer 
+        cartographer_node,
+        cartographer_occupancy_grid_node,
     #localization and navigation
         mapserver_node,
-        amcl_node,
+        #amcl_node,
         lifecycle_node,
 
     #visualization
